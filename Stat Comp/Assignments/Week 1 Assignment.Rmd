@@ -1,0 +1,102 @@
+---
+title: "Week One Assignment"
+author: "Ian Gallmeister"
+date: ""
+output: 
+  html_document:
+    fig_height: 3
+    fig_width: 5
+---
+<!-- Don't edit in between this line and the one below -->
+```{r include=FALSE}
+# Don't delete this chunk if you are using the DataComputing package
+library(DataComputing)
+```
+*Source file* 
+```{r, results='asis', echo=FALSE}
+includeSourceDocuments()
+```
+<!-- Don't edit the material above this line -->
+
+
+Read ISL Ch 2  
+2.4.1 - Discussion   
+(a) For an extremely large sample size and few parameters, a more rigid fit would work better to avoid overfitting.  
+(b) For many parameters and few data points, a more flexible model will help find a fit more likely to accurate than a rigid model by fitting closer to the data gathered.  
+(c) A flexible model here helps avoid huge errors at the extremes of the data that a linear model would create.  
+(d) Here, there is a lot of unmeasurable error, so I'd go with a more rigid fit in an attempt to average out the error among datapoints.
+
+2.4.3 - Discussion   
+(a) In the plot, the irreducible error is a horizontal line.  The MSE for the training data starts wherever and goes down or increases before going back down.  The MSE for test data starts above the training data and either goes down and back up or over and up.  Bias goes down as the fit better matches the training data (as flexibility increase), and variability goes up as flexibility goes up.   
+(b) **Training error** - For this, as flexibility increases, the function fits this data better, decreasing the error.  
+**Test error** - Increased flexibility fits the training data better and better which leads to increased error for test data.  
+**Variance** - Increased flexibility leads to an increased effect on the function when altering a single data point, increasing the variance.  
+**Bias** - Increased flexibility means there are fewer points being igored for being weird/extreme, so the bias decreases.  
+**Irreducible error** - This just chills all on its own.  That's why it's constant for all flexibilities.
+
+2.4.6 - Discussion  
+Parametric approaches have a response variable (dependent variable) and a set of parameters (independent variables) applied to a generic formula.  In this case, one knows something about the data and is trying to find out more specifically what it is.  Here we want to find the most ideal values for our parameters and form of our equation to get close to our response variables.  
+A non-parametric approach has no parameters or dependent variable  This approach takes data and tries to find patterns within it like clusters.  
+A parametric approach has the advantage (for classification/regression problems) that we know some factors of classification boundaries and can fit them well.  The major disadvantage comes if we overlook a factors, especially a significant one, because all of our other parameters then get messed up.   
+
+2.4.8 - Computing  
+(c)  i -  ![](W1_c(i).png)  
+ii - ![](W1_c(ii).png)  
+iii - ![](W1_c(iii).png)  
+iv - ![](W1_c(iv).png)  
+v - ![](W1_c(v).png)  
+vi - So ... Books cost and outstate tuition are really not related at all.  Outstate and Expend are much more closely related.
+
+2.4.9 - Computing 
+(a) Qualitative: Name, origin, year
+  Quantitative: Everything else (acceleration, weight, mpg, horesepower, displacement, cylinders)  
+  
+(b) MPG: [9.0, 46.6]  
+Cylinders: [3, 8]  
+Displacement: [68, 455]  
+Horsepower: [46, 230]  
+Weight:  [1613, 5140]  
+Acceleration: [8.0, 24.8]   
+
+(c) Predictor - Mean - Std. Deviation  
+MPG - 23.45 - 7.81   
+Cylinders - 5.47 - 1.71  
+Displacement - 194.41 - 104.64  
+Horsepower - 104.47 - 38.49   
+Weight - 2977.58 - 849.40  
+Acceleration - 15.54 - 2.76    
+
+(d) Predictor - Range - Mean - Std. Deviation  
+MPG - [14, 18] - 15.6 - 1.58     
+Cylinders - [8, 8] - 8 - 0   
+Displacement - [302, 455] - 374.90 - 65.72   
+Horsepower - [130, 225] - 178.30 - 35.54   
+Weight - [3433, 4425] - 3879.70 - 432.15   
+Acceleration - [8.5, 12] - 10.30 - 1.34  
+
+(e) ![](W1_9(e).png)  
+Here, mpg and horsepower have an (unsurprisingly) inverse relationship.  Horsepower and acceleration seem to as well, which surprises me a bit.  Displacement and horsepower, unsurprisingly, have a strong positive relation.  Horsepower range seems to go down from 1970 to 1982, which surprises me a bit.  I'd wager that the range has increased again from then to now.
+
+(f)  My plots suggest that mpg and horsepower are inversely related.  Similarly, the plots suggest a similar inverse relationship between mpg and displacement.  It'd be interesting to see whether mpg's range increases (like, an increase in the values, not the spread) over years.
+
+2.4.2 - Theory  
+(a) Regression would be the aim - we're aiming to model a quantitative, continuous variable.  n = 500, p = 4  
+(b) Regression - classification with just "this" and "not this" are regressed, not classified.  n = 20, p = 14  
+(c) Regression - modeling a continuous, quantitiative variable.  n = 52, p = 4
+
+2.4.7 - Theory  
+(a) Observation -> Distance  
+1 -> 3  
+2 -> 2  
+3 -> $\sqrt{10}$  
+4 -> $\sqrt{5}$  
+5 -> $\sqrt{2}$  
+6 -> $\sqrt{3}$
+
+(b) K = 1, Y = Green  
+This happens because the nearest point is green.  
+
+(c) K = 3, Y = Red  
+This happens because two of the three points are red.
+
+(d) I'd expect a medium value, closer to 1 if there are only 6 points because this would give me more responsiveness and less linearity in determining the Bayes decision boundary.

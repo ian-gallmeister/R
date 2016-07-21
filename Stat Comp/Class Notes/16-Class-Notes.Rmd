@@ -1,0 +1,43 @@
+---
+title: "Class Notes"
+author: "Statistical Computing & Machine Learning"
+date: "Class 16"
+output: rmarkdown::tufte_handout
+---
+
+```{r include=FALSE}
+require(mosaic)
+require(ISLR)
+knitr::opts_chunk$set(tidy=FALSE)
+```
+
+# Review bias and variance
+
+Example, a roughly quadratic cloud of points.  Better to fit it with a constant, straight line, a quadratic? 
+
+* Depends on the amount of data.
+* What if you have only n=3 or 4?
+
+Constant will have the least sampling variation but the most bias.
+
+Quadratic will have the least bias but the most sampling variation.
+
+
+For `Credit` dataset: <http://www-bcf.usc.edu/~gareth/ISL/Credit.csv>
+
+## Shrinkage idea:
+
+Make a linear combination of the constant model with the "full" model.
+
+# Methods
+
+## Ridge regression
+
+\marginnote{ISLR Figure 6.4.}
+\includegraphics[width=\textwidth]{../ISL-Book-Figures/Chapter6/{6.4}.pdf}
+
+## LASSO
+
+\marginnote{ISLR Figure 6.7.}
+\includegraphics[width=\textwidth]{../ISL-Book-Figures/Chapter6/{6.7}.pdf}
+

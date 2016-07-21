@@ -1,0 +1,121 @@
+---
+title: "Topic 7 Assignment"
+author: "Ian Gallmeister"
+date: ""
+output: 
+  html_document:
+    fig_height: 7
+---
+<!-- Don't edit in between this line and the one below -->
+```{r include=FALSE}
+# Don't delete this chunk if you are using the DataComputing package
+library(DataComputing)
+```
+*Source file* 
+```{r, results='asis', echo=FALSE}
+includeSourceDocuments()
+```
+<!-- Don't edit the material above this line -->
+
+##7.9.3  
+Suppose we fit a curve with basis functions $b_1(X) = X, \: b_2(X) = (X-1)^2I(X \geq 1)$.  (Note that $I(X \geq 1)$ equals 1 for $X \geq 1$ and 0 otherwise.)  We fit the linear regression model
+$$
+Y = \beta_0 + \beta_1b_1(X) + \beta_2b_2(X) + \epsilon,
+$$
+and obtain coefficient estimates $\hat{\beta}_0 = 1, \: \hat{\beta}_1 = 1, \: \hat{\beta}_2 = -2$. Sketch the estimated curve between $X = -2$ and $X = 2$.  Note the intercepts, slopes, and other relevant information.
+
+**Curve sketched**
+
+##7.9.4  
+Suppose we fit a curve with basis functions $b_1(X) = I(0 \leq X \leq 2) - (X - 1)I(1 \leq 1 X \leq 2), \: b_2(X) = (X-3)I(3 \leq X \leq 4) + I(4 < X \leq 5)$  We fit the linear regression model
+$$
+Y = \beta_0 + \beta_1b_1(X) + \beta_2b_2(X) + \epsilon,
+$$
+and obtain coefficient estimates $\hat{\beta}_0 = 1, \: \hat{\beta}_1 = 1, \: \hat{\beta}_2 = 3$. Sketch the estimated curve between $X = -2$ and $X = 2$.  Note the intercvepts, slopes, and other relevant information.
+
+**Curve sketched**
+
+##7.9.5  
+Consider two curves $\hat{g}_1$ and $\hat{g}_2$, defined in the book and not here because it's kind of hideous.  
+(a) As $\lambda \to \infty$, will $\hat{g}_1$ or $\hat{g}_2$ have the smaller training RSS?
+(b) As $\lambda \to \infty$, will $\hat{g}_1$ or $\hat{g}_2$ have the smaller test RSS?
+(c) As $\lambda = 0$, will $\hat{g}_1$ or $\hat{g}_2$ have the smaller training and test RSS?
+
+(a) I think $\hat{g}_1$ will have the smaller training RSS as it's one derivative less far, so the degree of the function if it's a polynomial will be higher and thus more variable.
+(b) For the same reasoning as in part (a), I think that'll lead to $\hat{g}_1$ having a higher test RSS.
+(c) For $\lambda = 0$, they are the same function.
+
+##7.9.11  
+(a) Generate a response $Y$ and two predictors $X_1$ and $X_2$ with $n = 100$   
+
+Let's define an equation $Y = 2X_1 + 3X_2 + \epsilon$.  Then:
+```{r}
+X1 <- rnorm(100, mean = 0, sd = 1)
+X2 <- rnorm(100, mean = 0, sd = 1)
+epsilon <- rnorm(100, mean = 0, sd = 0.1)
+Y <- 2*X1 + 3*X2 + epsilon
+```
+
+(b) Initalize $\hat{\beta}_1$ to take on a value of your choice.  The exact value is not important.  
+```{r}
+beta1 <- 5
+```
+
+(c) Keeping $\hat{\beta}_1$ fixed, fit the model
+$$
+Y - \hat{\beta}_1X_1 = \beta_0 + \beta_2X_2 + \epsilon
+$$  
+Try
+```a = y - beta1*x1``` and ```beta2 = lm(a ~ x2)$coef[2]```  
+
+```{r}
+a <- Y - beta1*X1
+beta2 <- lm(a ~ X2)$coef[2]
+beta2
+```
+
+(d) Keeping $\hat{\beta}_2$ fixed, fit the model
+$$
+Y - \hat{\beta}_2X_2 = \beta_0 + \beta_1X_1 + \epsilon
+$$
+Try 
+```a = y - beta2*x2``` and ```beta1 = lm(a ~ x1)$coef[2]```  
+
+```{r}
+a <- Y - beta2
+beta1 <- lm(a ~ X1)$coef[2]
+beta1
+```
+
+(e) Write a for loop to repeat (c) and (d) 1000 times.  Report the estimates of $\hat{\beta}_0$, $\hat{\beta}_1$, $\hat{\beta}_2$ at each iteration of the for loop.  Create a plot in which each of those values is displayed with $\hat{\beta}_0$, $\hat{\beta}_1$, and $\hat{\beta}_2$ are each shown in a different color. 
+
+```{r}
+beta1 <- 5
+beta2 <- 0
+betas1 <- numeric(1000)
+betas2 <- numeric(1000)
+for (x in 1:1000){
+  #Fit model, get new beta2
+  a <- Y - beta1*X1
+  beta2 <- lm(a ~ X2)$coef[2]
+  
+  #Store beta1 and beta2
+  betas1[x] <- beta1
+  betas2[x] <- beta2
+  
+  #Fit model, get new beta1
+  a <- Y - beta2
+  beta1 <- lm(a ~ X1)$coef[2]
+  
+  #Repeat
+}
+data.frame(betas1, betas2)
+```
+
+(f) Compare (e) to results of performing multiple linear regression to predict $Y$ using $X_1$ and $X_2$.  Use the ```abline()``` function to overlay those multiple linear regression coefficient estimates on the plot from (e).   
+
+This part confuses me.
+
+(g) On this data set, how many backfitting iterations were required in order to obtain a "good" approximation to the multiple regression coefficient estimates? 
+
+I feel like it depends on the dependence.  Here it's linear and it barely changed after the first iteration.

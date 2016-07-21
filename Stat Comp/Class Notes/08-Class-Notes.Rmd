@@ -1,0 +1,67 @@
+---
+title: "Class Notes"
+author: "Statistical Computing & Machine Learning"
+date: "Class 8"
+output: rmarkdown::tufte_handout
+---
+
+```{r include=FALSE}
+require(mosaic)
+```
+
+# Review
+
+
+# The Price is Right!
+
+*The Price is Right* is a game show in which contestants compete to guess the price of a prize.  The winner is the person whose guess is closest to the actual price considering just those contestants who guesses a price less than or equal to the actual price.
+
+Strategy:
+
+1. First person to guess: an honest guess, hedged on the low side.
+2. Second person: bias guess to be far from the first person's guess.
+3. Third person: 
+4. Fourth person: Zero, or just above one of the other guesses.
+
+Play this game. Call down 4 contestants.  What's the price of this yacht?
+
+![](yacht-04.jpg)
+
+Now, suppose rather than being a strategic game biased toward the last guesser, we wanted to evaluate political prognosticators.  The winner should be the person who makes the best prediction rather than the best guess.
+
+Game: Predict the results of the Ukrainian Parliament's [vote of no confidence](http://www.bbc.com/news/world-europe-35591605) in Prime Minister Arseniy Yatsenyuk. How many votes for no confidence were there. \marginnote{(Actual result for you to compare your prediction to: one-hundred ninety-four out of three-hundred thirty-nine.)}
+
+1. Play this game asking people to draw the probability distribution of their prediction.  Who won. How to evaluate the predictions?
+
+2. Suppose you know something about the contestants.    
+    * David Moore from International Studies
+    * Gary Krueger from Economics
+    * Sybill Trelawney from Divination Science
+    * Jesse Ventura from Political Science
+
+
+# From likelihood to Bayes
+
+Multiply likelihood by prior probability.
+
+# What is Bayesian Statistics?
+
+Emphasize the choice of what detail of the sampling model to use.  Just this school in isolation?  This school as the max of 1000 schools?
+
+
+
+# Choosing models using maximum likelihood
+
+Straight line model:
+
+Gaussian errors:$f(x \; | \; \mu, \sigma) = \frac{1}{\sigma\sqrt{2\pi} } \; e^{ -\frac{(x-\mu)^2}{2\sigma^2} }$
+
+What happens when you take the log ... why it's sum of squares.
+
+Question: What about minimizing the absolute value of the residuals, rather than the square?
+
+# In-class programming activity
+
+Likelihood calculations II [link](../Daily-Programming/Day-8-Programming-Task.pdf)
+
+

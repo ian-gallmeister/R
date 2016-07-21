@@ -1,0 +1,269 @@
+---
+title: '3.6 - Lab: Linear Regression'
+author: "Ian Gallmeister"
+date: "4 February 2016"
+output:
+  html_document:
+    fig_height: 3
+    fig_width: 5
+  pdf_document: default
+---
+<!-- Don't edit in between this line and the one below -->
+```{r include=FALSE}
+# Don't delete this chunk if you are using the DataComputing package
+library(DataComputing)
+```
+*Source file* 
+```{r, results='asis', echo=FALSE}
+includeSourceDocuments()
+```
+<!-- Don't edit the material above this line -->
+
+
+##3.6 - Lab: Linear Regression
+
+###3.6.1 - Libraries
+```{r}
+library(MASS)
+library(ISLR)
+```
+
+###3.6.2 - Simple Linear Regression
+```{r}
+View(Boston)
+names(Boston)
+lm.fit <- lm(medv~lstat, data=Boston)
+lm.fit
+summary(lm.fit)
+names(lm.fit)
+confint(lm.fit)
+predict (lm.fit ,data.frame(lstat=c(5,10 ,15)),
+interval ="confidence")
+predict (lm.fit ,data.frame(lstat=c(5,10 ,15)),
+interval ="prediction")
+```
+Can use ```lm.fit$<name>``` to get data, but it's safer to use extractor functions.
+e.g. ```coef(lm.fit)``` instead of ```lm.fit$coefficients```
+
+Can get confidence interval from linear model - use ```confint()```
+
+```{r, fig.height=7, fig.width=7}
+with(Boston, plot(lstat, medv))
+abline(lm.fit, lwd = 3)
+```
+
+To specify data for functions, can use ```dataset$variable``` within the function arguments or can put commands within the command ```with(dataset, command)```  
+
+```abline(a, b)``` is for a line with intercept ```a``` and slope ```b```.  ```lwd = 3``` increases the thickness by a factor of 3.  Within ```plot()```, one can use ```pch = ``` to change the symbols used to plot points - both integers for point size and symbols for point shape are valid.
+
+```par(mfrow=c(x, y))``` splits the plot window into an x by y set of windows.
+
+
+This set of commands gets the error message shown directly underneath.  :(
+```
+par(mfrow=c(2,2))
+with(Boston, plot(lm.fit))
+with(Boston, plot(predict (lm.fit), residuals (lm.fit)))
+with(Boston, plot(predict (lm.fit), rstudent (lm.fit)))
+with(Boston, plot(hatvalues (lm.fit)))
+which.max(hatvalues (lm.fit))
+```
+
+```
+Error in plot.new() : figure margins too large Calls: <Anonymous> ... plot -> plot.lm -> plot -> plot.default -> plot.new
+```
+
+###3.6.3 - Multiple Linear Regression
+
+Using multiple parameters.
+
+```{r}
+lm.fit <- lm(medv ~ lstat + age, data=Boston)
+summary(lm.fit)
+```
+
+Lots work to model based on all variables.  Can use a . instead:
+```{r}
+lm.fit <- lm(medv~., data=Boston)
+summary(lm.fit)
+```
+
+The library ```car``` has ```vif()``` which can be used to calculate variance inflation factors.
+```{r}
+library(car)
+vif(lm.fit)
+```
+
+Now we can see that ```age``` has a large p-value, so to model this the same except for excluding age, we can just use ```lm(output ~ .-badinputs)```
+
+```{r}
+lm.fit1 <- lm(medv ~ .-age, data=Boston)
+```
+
+Alternately, one can use ```update(lm.fit, ~.-age)```
+
+```{r}
+summary(lm.fit1)
+```
+
+## 3.6.4 - Interaction Terms
+
+```{r}
+summary(lm(medv~lstat*age, data = Boston))
+```
+
+## 3.6.5 - Nonlinear Interaction Terms
+
+To use nonlinear terms like $x^2$, use ```I(x^2)``` because ```^``` is reserved for other things in R.
+
+```{r}
+lm.fit2 <- lm(medv~lstat + I(lstat^2), data = Boston)
+summary(lm.fit2)
+```
+
+```anova()``` can quantify how much better (or worse) the quadratic fit is than the linear one.
+
+```{r}
+lm.fit <- lm(medv~lstat, data=Boston)
+anova(lm.fit, lm.fit2)
+```
+
+Additionally, can use ```poly(variable, degree)``` instead of ```I(variable^#)```.  Additionally, log transforms and other interesting functions are all valid in ```lm()```.
+
+```{r}
+lm.fit5 <- with(Boston, lm(medv~poly(lstat, 5)))
+summary(lm.fit5)
+
+#Or use a log transform
+
+summary(lm(medv~log(rm), data=Boston))
+```
+
+## 3.6.6 - Qualitative Predictors
+
+Here, we look at ```Carseats``` in an effort to predict ```sales```.
+
+```{r}
+View(Carseats)
+names(Carseats)
+```
+
+If we use a qualitative variable, R generates automatic dummy variables for that.
+
+```{r}
+lm.fit = lm(Sales~.+Income:Advertising + Price:Age, data = Carseats)
+summary(lm.fit)
+```
+
+```contrasts()``` returns the coding for dummy variables
+
+```{r}
+with(Carseats, contrasts(ShelveLoc))
+```
+
+## 3.6.7 - Writing Functions
+
+```
+functionname <- function(){
+
+functioncommand1
+functioncommand2
+...
+functioncommandN
+
+}
+```
+
+This function can be called as ```functionname()```, and ```functionname``` without the parentheses will output the commands used to write that function.
+
+Lab Complete.  :)
+
+### Code from ISLR Website for lab
+
+Note - code just copy pasted.  One should use ```View()``` instead of ```fix()```.  Additionally, one should never use ```attach()```.  Instead, a decent option is the function ```with()```.
+
+```
+# Chapter 3 Lab: Linear Regression
+
+library(MASS)
+library(ISLR)
+
+# Simple Linear Regression
+
+fix(Boston)
+names(Boston)
+lm.fit=lm(medv~lstat)
+lm.fit=lm(medv~lstat,data=Boston)
+attach(Boston)
+lm.fit=lm(medv~lstat)
+lm.fit
+summary(lm.fit)
+names(lm.fit)
+coef(lm.fit)
+confint(lm.fit)
+predict(lm.fit,data.frame(lstat=(c(5,10,15))), interval="confidence")
+predict(lm.fit,data.frame(lstat=(c(5,10,15))), interval="prediction")
+plot(lstat,medv)
+abline(lm.fit)
+abline(lm.fit,lwd=3)
+abline(lm.fit,lwd=3,col="red")
+plot(lstat,medv,col="red")
+plot(lstat,medv,pch=20)
+plot(lstat,medv,pch="+")
+plot(1:20,1:20,pch=1:20)
+par(mfrow=c(2,2))
+plot(lm.fit)
+plot(predict(lm.fit), residuals(lm.fit))
+plot(predict(lm.fit), rstudent(lm.fit))
+plot(hatvalues(lm.fit))
+which.max(hatvalues(lm.fit))
+
+# Multiple Linear Regression
+
+lm.fit=lm(medv~lstat+age,data=Boston)
+summary(lm.fit)
+lm.fit=lm(medv~.,data=Boston)
+summary(lm.fit)
+library(car)
+vif(lm.fit)
+lm.fit1=lm(medv~.-age,data=Boston)
+summary(lm.fit1)
+lm.fit1=update(lm.fit, ~.-age)
+
+# Interaction Terms
+
+summary(lm(medv~lstat*age,data=Boston))
+
+# Non-linear Transformations of the Predictors
+
+lm.fit2=lm(medv~lstat+I(lstat^2))
+summary(lm.fit2)
+lm.fit=lm(medv~lstat)
+anova(lm.fit,lm.fit2)
+par(mfrow=c(2,2))
+plot(lm.fit2)
+lm.fit5=lm(medv~poly(lstat,5))
+summary(lm.fit5)
+summary(lm(medv~log(rm),data=Boston))
+
+# Qualitative Predictors
+
+fix(Carseats)
+names(Carseats)
+lm.fit=lm(Sales~.+Income:Advertising+Price:Age,data=Carseats)
+summary(lm.fit)
+attach(Carseats)
+contrasts(ShelveLoc)
+
+# Writing Functions
+
+LoadLibraries
+LoadLibraries()
+LoadLibraries=function(){
+ library(ISLR)
+ library(MASS)
+ print("The libraries have been loaded.")
+ }
+LoadLibraries
+LoadLibraries()
+```

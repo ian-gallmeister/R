@@ -1,0 +1,45 @@
+---
+title: "Class Notes"
+author: "Statistical Computing & Machine Learning"
+date: "Class 6"
+output: rmarkdown::tufte_handout
+---
+
+```{r include=FALSE}
+require(mosaic)
+```
+
+# Review
+
+
+
+# The geometry of fitting
+
+* Data tables: cases and variables.
+* A quantitative variable is a vector.
+* A categorical variable can be encoded as a set of "dummy" vectors.
+* Response variable and explanatory variable
+* The linear projection problem: find the point spanned by the explanatory variables that's closest to the response.  That linear combination is the best-fitting model.
+    * One explanatory and the response
+    * Two explanatory on board and the response on the board (perfect, but meaningless fit)
+    * Two explanatory in three-space and the response (residual likely)
+
+
+# Precision of the coefficients
+
+$$ \mbox{standard error of B coef.} = 
+| \mbox{residuals} | \frac{1}{| \mbox{B} |}\ 
+\frac{1}{\sin( \theta )}\ \frac{1}{\sqrt{n}}\ \sqrt{\frac{n}{n-m}}$$
+
+* $m$ --- degrees of freedom in model
+* $\theta$ --- angle between this model vector and the space spanned by the others
+* B --- this model vector 
+* residuals --- the residual vector
+
+
+# In-class programming activity
+
+Make a function for the histogram.
+
+
+

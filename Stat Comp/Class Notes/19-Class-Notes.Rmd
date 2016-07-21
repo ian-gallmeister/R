@@ -1,0 +1,191 @@
+---
+title: "Class Notes"
+author: "Statistical Computing & Machine Learning"
+date: "Class 19"
+output: rmarkdown::tufte_handout
+---
+
+```{r include=FALSE}
+require(mosaic)
+require(ISLR)
+require(glmnet)
+require(pls)
+require(gam)
+knitr::opts_chunk$set(tidy=FALSE)
+```
+# Aside: Is continuity always good?
+
+[Regression discontinuity video](https://www.youtube.com/watch?v=TfKwgGT2fSM)
+
+
+# Quantiles
+
+Show the ecdf() of some data.  Invert this to get the quantiles.
+
+Show `mosaic::qdata()` and `mosaic::pdata()` as inverses.
+
+`quantile()` is the original version of this.
+
+# Standard errors and error bands
+
+```{r}
+mod <- lm(time ~ year, data=SwimRecords)
+summary(mod)
+```
+
+Do bootstrap replications
+
+```{r}
+reps <- do(500) * lm(time ~ year,   data=resample(SwimRecords))
+sd(reps$year)
+sd(reps$Intercept)
+plot(time ~ year, data=SwimRecords)
+for (k in 1:nrow(reps))
+  abline(reps[k,]$Intercept, reps[k,]$year, col=rgb(1,0,0,.2))
+```
+
+Generate random values of slope and intercept and add those to the plot.
+```{r}
+slopes <- rnorm(500, mean = -0.26, sd = 0.028)
+intercepts <- rnorm(length(slopes), mean=567.2, sd=53.9)
+if(!is.null(knitr::current_input() ))
+   plot(time ~ year, data=SwimRecords)
+for(k in 1:length(slopes))
+  abline(intercepts[k], slopes[k], col=rgb(0,1,0, .2))
+```
+
+Why the disagreement between the bootstrapped coefficients and the random generation of slopes and intercepts?
+
+```{r}
+rands <- matrix(rnorm(500, sd=2), ncol=2)
+# 2 so that we cover 95% interval
+better <- rands %*% chol(vcov(mod))
+means <- matrix(c(567.2, -0.26), byrow = TRUE,ncol=2, nrow=nrow(better))
+better <- better + means
+if(!is.null(knitr::current_input() ))
+   plot(time ~ year, data=SwimRecords)
+for(k in 1:nrow(better))
+  abline(better[k,1], better[k,2], col=rgb(0,0,1, .2))
+```
+
+```{r}
+with(reps, plot(Intercept, year))
+```
+
+To generate standard error at a set of points:
+
+```
+rowSums(MM %*% vcov(mod) * MM)
+# note standard multiplication *
+```
+
+```{r}
+MM <- model.matrix(time ~ year, data=SwimRecords)
+SE <- rowSums(MM %*% vcov(mod) * MM)
+top <- fitted(mod) + 2*SE
+bottom <- fitted(mod) - 2*SE
+if(!is.null(knitr::current_input() ))
+   plot(time ~ year, data=SwimRecords)
+points(MM[,2], top, pch=20)
+points(MM[,2], bottom, pch=20)
+```
+
+# Polynomial bases
+
+```{r}
+X <- data.frame(year = 1890:2020)
+X$sex <- rep(c("F","M"), length=nrow(X))
+```
+
+## The raw polynomials
+```{r}
+x <- 0:100
+funs <- outer(x, 0:5, FUN = `^`)
+svd(funs)$d
+mod <- lm(time ~ sex*outer(year, 0:5, FUN = `^`), data=SwimRecords)
+plot(time ~ year, data=SwimRecords)
+with(SwimRecords, points(year, fitted(mod), pch=20))
+preds <- predict(mod, newdata = X)
+plot(X$year, preds, pch=20)
+with(SwimRecords, points(year, time))
+```
+
+## Orthogonal polynomials
+
+```{r}
+x <- 0:100
+funs <- stats::poly(x, degree = 10)
+plot(x, funs[,1], type="l", ylim=c(-.3,.3))
+for (k in 1:ncol(funs))
+  lines(x, funs[,k], col=rainbow(ncol(funs))[k])
+svd(funs)$d
+```
+
+# Splines
+
+## B-splines
+```{r}
+x <- 0:100
+funs <- splines::bs(x, df = 15)
+plot(x, funs[,1], type="l")
+for (k in 1:ncol(funs))
+  lines(x, funs[,k], col=topo.colors(ncol(funs))[k])
+mod <- lm(time ~ sex * splines::bs(year, df=5), data=SwimRecords)
+plot(time ~ year, data=SwimRecords)
+with(SwimRecords, points(year, fitted(mod), pch=20))
+preds <- predict(mod, newdata = X)
+plot(X$year, preds, pch=20)
+with(SwimRecords, points(year, time))
+```
+
+
+## Natural splines
+
+```{r}
+x <- 0:100
+funs <- splines::ns(x, df = 5)
+plot(x, funs[,1], type="l", ylim=c(-1,1))
+for (k in 1:ncol(funs))
+  lines(x, funs[,k], col=rainbow(ncol(funs))[k])
+mod <- lm(time ~ sex * splines::ns(year, df=5), data=SwimRecords)
+plot(time ~ year, data=SwimRecords)
+with(SwimRecords, points(year, fitted(mod), pch=20))
+preds <- predict(mod, newdata = X)
+plot(X$year, preds, pch=20)
+with(SwimRecords, points(year, time))
+```
+
+## Smoothing splines
+
+```{r}
+mod <- with(SwimRecords, smooth.spline(year, time, df = 5))
+multiples <- duplicated( SwimRecords$time )
+mod2 <- with(SwimRecords, smooth.spline(year, time, cv = TRUE))
+mod2$df
+plot(time ~ year, data=SwimRecords)
+lines(mod, col="red", lwd=2)
+lines(mod2, col="blue", lwd=3)
+```
+
+
+# Smoothers in k dimensions
+
+# GAMS
+
+```{r}
+library(gam)
+mod <- gam(time ~ sex * s(year, 2), data=SwimRecords)
+preds <- predict(mod, newdata=X)
+plot(X$year, preds)
+```
+
+
+# Programming Activity
+
+Finish up Day 16 Programming Activity.
+
+Look at the smoothness.
+
+Calculate the second derivative and integrate its absolute value over the interval.
+
+

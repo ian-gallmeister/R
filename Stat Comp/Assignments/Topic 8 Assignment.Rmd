@@ -1,0 +1,59 @@
+---
+title: "Topic 8 Assignment"
+author: "Ian Gallmeister"
+date: ""
+output: 
+  html_document:
+    fig_height: 7
+---
+<!-- Don't edit in between this line and the one below -->
+```{r include=FALSE}
+# Don't delete this chunk if you are using the DataComputing package
+library(DataComputing)
+```
+*Source file* 
+```{r, results='asis', echo=FALSE}
+includeSourceDocuments()
+```
+<!-- Don't edit the material above this line -->
+
+##8.4.1  
+ Draw an example (of your own invention) of a partition of two dimensional feature space that could result from recursive binary splitting. Your example should contain at least six regions. Draw a decision tree corresponding to this partition. Be sure to label all aspects of your figures, including the regions $R_1, \: R_2, \ldots $, the cutpoints $t_1, \: t_2, \ldots$, and so forth. 
+
+*Hint: Your result should look something like Figures 8.1 and 8.2.*
+
+Picture drawn
+
+##8.4.2  
+Section 8.2.3 mentions that boosting using depth-one trees (or stumps) leads to an additive model: that is, a model of the form
+$$
+f(X) = \sum_{j=1}^pf_j(X_j)
+$$
+Explain why this is the case.  You can begin with (8.12) in Algorithm 8.2
+
+I feel like this is because there will be one split for each variable and thus an additive factor for each variable leading to the same decision.
+
+##8.4.3  
+Consider the Gini index, classification error, and cross-entropy in a simple classification setting with two classes. Create a single plot that displays each of these quantities as a function of $\hat{p}_{m1}$. The $x$-axis
+should display $\hat{p}_{m1}$, ranging from 0 to 1, and the $y$-axis should display the value of the Gini index, classification error, and entropy.
+
+Hint: In a setting with two classes, $\hat{p}_{m1} = 1 − \hat{p}_{m2}$. You could make this plot by hand, but it will be much easier to make in ```R```.
+
+Plot created.
+
+##8.4.4  
+(a) Sketch the tree corresponding to the partition of the predictor space illustrated in the left-hand panel of Figure 8.12.   The numbers inside the boxes indicate the mean of $Y$ within each region.  
+(b) Create a diagram similar to the left-hand panel of Figure 8.12, using the tree illustrated in the right-hand panel of the same figure.  You should divide up the predictor space into the correct regions, and indicate the mean for each region.
+
+Tree sketched, diagram created.
+
+##8.4.5  
+Too complex to have in here.  See book.  Lazy senior (referring to myself).
+
+(a) - More predictions of Red than not Red, therefore Red.  
+(b) - Average is 0.45, therefore not Red
+
+##8.4.12  
+Apply boosting, bagging, and random forests to a data set of your choice. Be sure to fit the models on a training set and to evaluate their performance on a test set. How accurate are the results compared to simple methods like linear or logistic regression? Which of these approaches yields the best performance?
+
+Sorry professor, I'm just so done with work at this point.  Have a nice summer!

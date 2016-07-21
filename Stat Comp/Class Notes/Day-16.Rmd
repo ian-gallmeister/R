@@ -1,0 +1,88 @@
+---
+title: "Day 16 Notes"
+author: "Ian Gallmeister"
+date: "31 March"
+output: 
+  html_document:
+    fig_height: 3
+    fig_width: 5
+---
+<!-- Don't edit in between this line and the one below -->
+```{r include=FALSE}
+# Don't delete this chunk if you are using the DataComputing package
+library(DataComputing)
+```
+*Source file* 
+```{r, results='asis', echo=FALSE}
+includeSourceDocuments()
+```
+<!-- Don't edit the material above this line -->
+
+```{r, fig.width=7, fig.height=5}
+library(ggplot2)
+data("NCHS")
+#help("NCHS")
+#ggplot(data = NCHS)
+NCHS %>% ggplot(aes(x = age, y = height)) + geom_point(alpha = 0.01)
+NCHS %>% ggplot(aes(x = age, y = height)) + geom_point(alpha = 0.01) + geom_smooth(se = FALSE, method = lm)
+NCHS %>% ggplot(aes(x = age, y = height)) + geom_point(alpha = 0.01) + geom_smooth(se = FALSE, method = loess)
+```
+
+* Polynomial differentiable with continuous output an infinite number of times  
+* Granted, goes to zero pretty quickly  
+* $C^3$ smooth means third derivative but not fourth is continuous  
+* $C^\infty$ favored  
+* Position -> velocity -> acceleration -> jerk -> who gives a shit?
+* Newton: interested in interpolation between points
+* Interpolation really important today -- digital sound is recorded as discrete points, so want interpolated function with continuous 3rd derivative so speaker arm moves continuously and doesn't break the damn thing.
+* Sink function best for sound.  Could use linear or combined quadratics etc..., but not so good
+
+```{r, fig.width=7, fig.height=5}
+NCHS %>% sample_n(size = 50) %>% ggplot(aes(x = age, y = height)) + geom_point(alpha = 0.1) + geom_smooth(method = loess)
+```
+
+* This gives a confidence band - all that's been removed is ```se = false``` from ```geom_smooth()```, and the dataset has been sampled down so the confidence is visible and not so narrow.
+
+```{r, fig.width=7, fig.height=5}
+NCHS %>% sample_n(size = 5000) %>% ggplot(aes(color = sex, x = age, y = height)) + geom_point(alpha = 0.1) + geom_smooth(method = loess)
+```
+
+* Here, we split it up by gender and increase the sample size
+
+```{r}
+make_model_matrix <- function(x, basis_funs) {
+  MM <- matrix(0, nrow = length(x), ncol = length(basis_funs))
+  for (i in 1:length(basis_funs)) {
+    MM[,i] = basis_funs[[i]](x)
+  }
+  return(MM)
+}
+```
+
+Polynomial basis functions:
+```{r}
+polynomial_basis_3 <- list(
+  function(x) 1,
+  function(x) x,
+  function(x) x^2,
+  function(x) x^3
+)
+```
+
+```{r, echo=FALSE}
+monomial <- function(k) {
+  
+}
+```
+
+```{r}
+step_fun <- function(where) { function(x) ifelse(x > where, 1, 0) }
+setp_basis <- list(
+  function(x) 1,
+  step_fun(30),
+  step_fun(35),
+  step_fun(50),
+  step_fun(55)
+  )
+show_smoother(basis=step_basis, data=mosaic::sample(Wage, size=100), bootstrap=10, confidence=FALSE)
+```

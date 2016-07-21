@@ -1,0 +1,165 @@
+---
+title: "Topic 2 Assignment"
+author: "Ian Gallmeister"
+date: "4 February"
+output: 
+  html_document:
+    fig_height: 3
+    fig_width: 5
+---
+<!-- Don't edit in between this line and the one below -->
+```{r include=FALSE}
+# Don't delete this chunk if you are using the DataComputing package
+library(DataComputing)
+```
+*Source file* 
+```{r, results='asis', echo=FALSE}
+includeSourceDocuments()
+```
+<!-- Don't edit the material above this line -->
+
+#Computing Problems
+
+##3.6 - Chapter 3 Lab
+
+I went through the lab.  Also futzed with just running the code from within the .Rmd.
+
+##3.7.13  
+Creating sample data and fitting regression models to it.  Make sure to use ```set.seed(1)``` before part (a) for consistent results.
+
+**(a)** Create vector ```x``` with 100 observations drawn from N(0,1) where N(x,y) has a mean of x and a variance of y.
+```{r}
+set.seed(1)
+x <- rnorm(100, mean = 0, sd = 1)
+```
+
+**(b)** Like part (a), but from N(0, 0.25).  Standard deviation is the square root of variance, so a 0.25 variance has a 0.5 std. deviation.
+```{r}
+eps <- rnorm(100, mean = 0, sd = 0.5)
+```
+
+**(c)** Use ```x``` and ```eps``` to create a vector ```y``` according to $Y = -1 + 0.5X + \epsilon$  What is the length of ```y```?  What are $\beta_0$ and $\beta_1$ in these models?
+
+```{r}
+y <- -1 + 0.5*x + eps
+```
+```y``` has a length of 100.  
+$\beta_0 = -1$  
+$\beta_1 = 0.5$
+
+**(d)** Create a scatterplot of x and y.  Comment on your observations.
+
+```{r, echo=FALSE, fig.height=7, fig.width=7}
+plot(x, y)
+```
+
+The data here looks roughly linear, though it really isn't super clear.  Given the range here, there could probably be some slight curve to the fit.
+
+**(e)** Fit ```y``` based on ```x```.  Comment on the model obtained.  How do $\beta$ and $\hat{\beta}$ compare?
+
+```{r}
+randommodel <- lm(y~x)
+summary(randommodel)
+```
+
+Here we see that $\beta_0 = -1$ and $\hat{\beta_0} = -1.01885$ which is quite close.  $\beta_1 = 0.5$ while $\hat{\beta_1} = 0.49947$, also very good.  Both P-values are very small, and knowing the true fit, I agree with that.  It's a good model.
+
+**(f)** Display the least squares and population regression lines on the plot from **(d)**.  Use ```legend()``` to create a legend for the plot.
+
+```{r, fig.height=7, fig.width=7}
+plot(x, y)
+lines(seq(from=-2.5, to = 2.5, length=1000), -1 + 0.5*seq(from = -2.5, to = 2.5, length=1000), col="Red")
+lines(seq(from=-2.5, to = 2.5, length=1000), -1.01885 + 0.49947*seq(from = -2.5, to = 2.5, length=1000), col="Green")
+legend('topleft', legend = c('Population Regression', 'Least Squares'), lty = c(1,1), col = c('Red', 'Green'))
+```
+
+**(g)**
+
+```{r}
+quadmod <- lm(y~I(x^2))
+summary(quadmod)
+```
+
+This has a similar intercept, though the $x^2$ term seems rather statistically insignificant as it has a 0.844 P-value.
+
+**(h)** Repeat **(a)** through **(f)** modified to have less noise.
+
+```{r, fig.height=7, fig.width=7}
+set.seed(1)
+x <- rnorm(100, mean = 0, sd = 1)
+eps <- rnorm(100, mean = 0, sd = 0.1)
+y <- -1 + 0.5*x + eps
+modelless <- lm(y~x)
+summary(modelless)
+plot(x, y)
+lines(seq(from=-2.5, to = 2.5, length=1000), -1 + 0.5*seq(from = -2.5, to = 2.5, length=1000), col="Red")
+lines(seq(from=-2.5, to = 2.5, length=1000), -1.01885 + 0.49947*seq(from = -2.5, to = 2.5, length=1000), col="Green")
+legend('topleft', legend = c('Population Regression', 'Least Squares'), lty = c(1,1), col = c('Red', 'Green'))
+```
+
+This model has similar results with lower P-values.
+
+**(i)** Repeat **(a)** through **(f)** modified to have more noise.
+
+```{r, fig.height=7, fig.width=7}
+set.seed(1)
+x <- rnorm(100, mean = 0, sd = 1)
+eps <- rnorm(100, mean = 0, sd = 0.75)
+y <- -1 + 0.5*x + eps
+modelmore <- lm(y~x)
+summary(modelmore)
+plot(x, y)
+lines(seq(from=-2.5, to = 2.5, length=1000), -1 + 0.5*seq(from = -2.5, to = 2.5, length=1000), col="Red")
+lines(seq(from=-2.5, to = 2.5, length=1000), -1.01885 + 0.49947*seq(from = -2.5, to = 2.5, length=1000), col="Green")
+legend('topleft', legend = c('Population Regression', 'Least Squares'), lty = c(1,1), col = c('Red', 'Green'))
+```
+
+This model has similar results with higher (but still statistically significant) P-values.
+
+**(j)**
+
+```{r}
+confint(modelless)
+confint(randommodel)
+confint(modelmore)
+```
+
+Unsurprisingly, the confidence intervals widen as our models go from the more variance one to the less variance one.
+
+#Theory Problems 
+  
+##Moodle 1  
+On p. 66 the authors state, "This is clearly not true in Fig. 3.1" Explain why.
+
+This is untrue because the random error is generated and thus pseudorandom based (likely) on 100 points taken from a normal distribution.
+
+##Moodle 2  
+On p. 77 the authors state, "In this case we cannot even fit the multiple regression models using least squares ...." Explain why.
+
+Here, the authors are talking about a case for which there are more predictors, $p$, than datapoints, $n$, which makes data fitting a pointless exercise as there isn't enough data to create a good fit.
+
+
+##3.7.3  
+Suppose a data set with predictors GPA, IQ, Gender, GPA\*IQ, and GP\*Gender.  Response is starting salary post-graduation (in thousands of dollars).  Least squares gives the coefficients $\hat{\beta}_0 = 50$, $\hat{\beta}_1 = 20$, $\hat{\beta}_2 = 0.07$, $\hat{\beta}_3 = 35$, $\hat{\beta}_4 = 0.01$, $\hat{\beta}_5 = -10$.
+
+**(a)** The correct choice is iii. - For fixed IQ and GPA, males earn more on average for high enough GPAs.  Because the GPA\*Gender term is negative and the Gender term is positive and female gets a 1 in gender, they start off better, but a higher GPA lowers their salary eventually cancelling out (or more) the gains from the gender predictor.
+
+**(b)** For a female with IQ 110 and GPA of 4.0, the predicted salary is:  
+$\mathsf{S} = \hat{\beta}_0 + \hat{\beta}_1*\hbox{GPA} + \hat{\beta}_2*\hbox{IQ} + \hat{\beta}_3*\hbox{Gender} + \hat{\beta}_4*\hbox{GPA}*\hbox{IQ} + \hat{\beta}_5*\hbox{GPA}*\hbox{Gender} =$ `r 50 + 20*(4.0) + 0.07*(110) + 35*(1) + 0.01*(110*4.0) + -10*(1*4.0)`
+
+**(c)** False - Just because the effects are small doesn't mean the relationship isn't strong.
+
+##3.7.4  
+Data collection - 100 observations - with a single pretictor and quantitative response.  Then Fit linear and cubic regressions.  i.e. $Y = \hat{\beta}_0 + \hat{\beta}X + \epsilon \hbox{ and } Y = \hat{\beta}_0 + \hat{\beta}_1X + \hat{\beta}_2X^2 + \hat{\beta}_3X^3 + \epsilon$
+
+**(a)** Suppose the true relationship is linear  Consider the training residual sum of squares for the linear and cubic regressions.  Which would one expect to be lower?  Would we expect the same result?  Or do we have enough info to tell?
+
+The RSS for the linear fit should be less as the fit will be closer and the error less for that fit than the cubic one.
+
+**(b)** I'd expect the same thing as the difference between linear and cubic relationships aren't easy to disguise with just $\epsilon$.
+
+**(c)** Suppose a nonlinear relationship, and we don't know how far from linear it is.  Consider the RSS data.  Which would be greater, lesser, same?  Or do we even have enough info?
+
+I'd argue the cubic fit would work better here because it can be widened or softened or rotated to fit the data better than a linear relationship could be.
+
+**(d)** I think the cubic would work better again.  It's just a more adaptible function for nonlinear relationships.

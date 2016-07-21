@@ -1,0 +1,163 @@
+---
+title: "Topic 6 Assignment"
+author: "Ian Gallmeister"
+date: ""
+output: 
+  html_document:
+    fig_height: 7
+---
+<!-- Don't edit in between this line and the one below -->
+```{r include=FALSE}
+# Don't delete this chunk if you are using the DataComputing package
+library(DataComputing)
+```
+*Source file* 
+```{r, results='asis', echo=FALSE}
+includeSourceDocuments()
+```
+<!-- Don't edit the material above this line -->
+
+
+###6.8.1  
+We perform best subset, forward stepwise, and backward stepwise selection on a single data set. For each approach, we obtain $p + 1$ models, containing $0, 1, 2,...,p$ predictors. Explain your answers:  
+
+* Which of the three models with $k$ predictors has the smallest training RSS?
+*  Which of the three models with $k$ predictors has the smallest test RSS?
+* True or False:
+    (1) The predictors in the $k$-variable model identified by forward stepwise are a subset of the predictors in the $(k+1)$-variable model identified by forward stepwise selection.  
+    (2) The predictors in the $k$-variable model identified by backward stepwise are a subset of the predictors in the $(k + 1)$-variable model identified by backward stepwise selection.
+    (3) The predictors in the $k$-variable model identified by backward stepwise are a subset of the predictors in the $(k + 1)$-variable model identified by forward stepwise selection.
+    (4) The predictors in the $k-$variable model identified by forward stepwise are a subset of the predictors in the $(k+1)$-variable model identified by backward stepwise selection.
+    (5)  The predictors in the $k$-variable model identified by best subset are a subset of the predictors in the $(k + 1)$-variable model identified by best subset selection.
+    
+**Answers:**  
+
+* Because  tests all models with $k$ predictors instead of a subset of that, its $k$-predictor model will have the lowest training RSS
+* I believe backwards stepwise will have the best test RSS because it starts with all predictors and gets rid of extraneous ones until it comes to an efficient model which, hopefully, doesn't overfit the data.
+* True/False
+    (1) True
+    (2) True
+    (3) False
+    (4) False
+    (5) False
+
+###6.8.2  
+For parts (A) through (C), indicate which of i. through iv. is correct.
+Justify your answer.
+
+(A) The lasso, relative to least squares, is:
+    i.  More flexible and hence will give improved prediction accuracy when its increase in bias is less than its decrease in variance.
+    ii. More flexible and hence will give improved prediction accuracy when its increase in variance is less than its decrease in bias.
+    iii. Less flexible and hence will give improved prediction accuracy when its increase in bias is less than its decrease in variance.
+    iv.  Less flexible and hence will give improved prediction accuracy when its increase in variance is less than its decrease in bias.
+(B) Repeat (A) for ridge regression relative to least squares.
+(C) Repeat (B) for non-linear methods relative to least squares.
+
+**Answers**  
+
+(A) - iii. The lasso is less flexible, so if bias increase is less than variance decrease, the prediction accuracy will go up.
+(B) - iii. The lasso and ridge regression are pretty similar, so yeah.
+(C) - ii. This is a more flexible method, so we'll get increased accuracy when variance increases less than bias does.
+
+###6.8.9  
+In this exercise, we will predict the number of applications received using the other variables in the College data set.
+
+(A) Split the data set into a training set and a test set.
+```{r}
+College <- read.csv("http://www-bcf.usc.edu/~gareth/ISL/College.csv", row.names = 1)
+View(College)
+set.seed(1)
+test_indices <- sample(nrow(College), nrow(College)/2)
+training_indices <- setdiff(1:nrow(College), test_indices)
+test_data <- College[test_indices,]
+training_data <- College[training_indices, ]
+```
+
+(B) Fit a linear model using least squares on the training set, and report the test error obtained.
+```{r}
+names(College)
+linmod <- lm(Apps ~ ., data = training_data)
+summary(linmod)
+predictions <- predict.lm(linmod, newdata = test_data)
+RSS <- sum( (test_data$Apps - predictions)^2  )
+```
+
+(C) Fit a ridge regression model on the training set, with $\lambda$ chosen by cross-validation. Report the test error obtained.
+```{r, fig.height = 5, fig.width = 5}
+library(glmnet)
+x <- model.matrix(Apps ~., data = training_data) #training data
+x_test <- model.matrix(Apps ~., data = test_data)
+y <- training_data$Apps #training results
+y_test <- test_data$Apps
+grid <- 10^seq(10,-2, length =100)
+ridge_regression <- glmnet (x, y, alpha=0, lambda=grid, thresh=1e-12)
+
+#Predict with lambda=4
+ridgepredict <- predict(ridge_regression, s = 4, newx = x_test)
+mean((ridgepredict - y_test)^2)
+
+#And with lambda = large
+ridgepredict <- predict(ridge_regression, s = 4e10, newx = x_test)
+mean((ridgepredict - y_test)^2)
+
+#Best lambda?
+set.seed(1)
+cvout <- cv.glmnet(x, y, alpha = 0)
+plot(cvout)
+lambda.best <- cvout$lambda.min
+lambda.best
+
+#Repredict
+ridgepredict <- predict(ridge_regression, s = lambda.best, newx = x_test)
+mean((ridgepredict - y_test)^2)
+```
+
+(D) Fit a lasso model on the training set, with $\lambda$ chosen by cross-validation. Report the test error obtained, along with the number of non-zero coefficient estimates.
+```{r}
+lasso_mod <- cv.glmnet(x, y, alpha = 1, lambda = grid)
+plot(lasso_mod)
+set.seed(1)
+cv.out <- cv.glmnet(x, y, alpha = 1)
+lambda.best <- cv.out$lambda.min
+lasso.pred = predict(lasso_mod, s = lambda.best, newx = x_test)
+mean((lasso.pred = y_test)^2)
+
+#Coefficients:
+out <- glmnet(x, y, alpha = 1, lambda = grid)
+lasso.coef <- predict(out, type = "coefficients", s = lambda.best)[1:19,]
+lasso.coef
+```
+F.Undergrad, Top25perc, and Personal are all zero.
+
+(E)  Fit a PCR model on the training set, with $M$ chosen by cross-validation. Report the test error obtained, along with the value of $M$ selected by cross-validation.
+```{r}
+library(pls)
+set.seed(2)
+pcr.fit <- pcr(Apps ~., data = training_data, scale = TRUE, validation = "CV")
+summary(pcr.fit)
+validationplot(pcr.fit, val.type="MSEP")
+pcr.predict <- predict(pcr.fit, test_data, ncomp = 16)
+mean((pcr.predict - y_test)^2)
+
+#Now using the best number of components:
+pcr.fit = pcr(Apps ~ ., data = College, scale=TRUE, ncomp = 16)
+summary(pcr.fit)
+```
+
+
+(F)  Fit a PLS model on the training set, with $M$ chosen by cross-validation. Report the test error obtained, along with the value of $M$ selected by cross-validation
+```{r}
+set.seed(1)
+pls.fit = plsr(Apps ~., data = College, subset = training_indices, scale = TRUE, validation = "CV")
+summary(pls.fit)
+validationplot(pls.fit, val.type="MSEP")
+
+#pls.predict <- predict(pls.fit, model.matrix(Apps ~., data = College)[test_indices,], ncomp=7)
+#mean((pls.predict - y_test)^2) #Welp, guess that isn't quite right.
+```
+
+
+(G) Comment on the results obtained. How accurately can we predict the number of college applications received? Is there much difference among the test errors resulting from these five approaches?
+```{r}
+
+```

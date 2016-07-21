@@ -1,0 +1,188 @@
+---
+title: "Class Notes"
+author: "Statistical Computing & Machine Learning"
+date: "Class 17"
+output: rmarkdown::tufte_handout
+---
+
+```{r include=FALSE}
+require(mosaic)
+require(ISLR)
+require(glmnet)
+require(pls)
+knitr::opts_chunk$set(tidy=FALSE)
+```
+
+# Review
+
+Predicting `Salary` in the `ISLR::Hitters` data:
+
+Ridge: There's other concerns in addition to fitting, e.g. the size of the coefficients.
+
+```{r eval=FALSE}
+Without_NA <- na.omit(ISLR::Hitters)
+inds <- sample(nrow(Without_NA), size = nrow(Without_NA)/2)
+Train <- Without_NA[inds,]
+Test <- Without_NA[-inds,]
+y_all <- Without_NA$Salary
+x_all <- model.matrix(Salary ~ ., data=Without_NA)
+y_train <- Train$Salary
+x_train <- model.matrix(Salary ~ ., data=Train)
+y_test <- Test$Salary
+x_test <- model.matrix(Salary ~ ., data=Test)
+ridge_mod <- cv.glmnet(x_train, y_train, alpha = 0)
+ridge_mod$lambda.min
+ridge_pred <- predict(ridge_mod, s=0, newx = x_test, exact=TRUE)
+mean((ridge_pred - y_test)^2)
+final <- glmnet(x_all, y_all, alpha=0)
+predict(final, type="coefficients", s=ridge_mod$lambda.min)
+
+```
+
+
+
+Lasso: Do we really need all of those variables?
+
+```{r eval=FALSE}
+lasso_mod <- cv.glmnet(x_train, y_train, alpha = 1)
+lasso_mod$lambda.min
+lasso_pred <- predict(lasso_mod, s=0, newx = x_test, exact=TRUE)
+mean((lasso_pred - y_test)^2)
+final <- glmnet(x_all, y_all, alpha=1)
+predict(final, type="coefficients", s=lasso_mod$lambda.min)
+```
+
+\marginnote{ISLR Figure 6.4.}
+\includegraphics[width=\textwidth]{../ISL-Book-Figures/Chapter6/{6.4}.pdf}
+
+\marginnote{ISLR Figure 6.7.}
+\includegraphics[width=\textwidth]{../ISL-Book-Figures/Chapter6/{6.7}.pdf}
+
+
+# Multi-collinearity
+
+
+The SAT story.
+```{r}
+summary(lm(sat ~ expend, data=mosaicData::SAT))$coef
+summary(lm(sat ~ expend + ratio, data=mosaicData::SAT))$coef
+summary(lm(sat ~ expend + ratio + salary, data=mosaicData::SAT))$coef
+rsquared(lm(expend ~ ratio + salary, data=mosaicData::SAT))
+```
+
+\includegraphics[width=3in]{CI-1.png}
+
+\includegraphics[width=7in]{CI-2.png}
+
+```{r}
+load("../Daily-Programming/mona.rda")
+rankMatrix(mona)
+# pick a vector at random; column 151 versus the first 131 columns
+rsquared(lm(t(mona)[,151] ~ t(mona)[,-151]))
+```
+
+
+Variance inflation factor
+
+$\mbox{VIF}(\beta_j) = \frac{1}{1 - R^2_{x_j|x_{-j}}}$
+
+Getting rid of vectors that correlate substantially with one another can reduce the variance inflation factor.
+
+
+# Creating correlations
+
+Generate points on circles of radius 1, 2, 3, ...
+
+```{r}
+make_circles <- function(radii = 1:2, nangs = 30) {
+  theta = seq(0, 2*pi, length = nangs)
+  x <- rep(cos(theta), length(radii))
+  y <- rep(sin(theta), length(radii))
+  r <- rep(radii, each = nangs)
+  col <- rep(rainbow(nangs), length(radii))
+  data.frame(x = x * r, y = y * r, r = r, col = col)
+}
+transform_circles <- function(M, circles = NULL) {
+  if (is.null(circles)) circles <- make_circles()
+  XY <- rbind(circles$x, circles$y)
+  new <- M %*% XY
+  circles$x = new[1, ]
+  circles$y = new[2, ]
+  
+  circles
+}
+
+
+
+Trans <- matrix(c(1, 2, -3, -1), nrow = 2, byrow = TRUE)
+After_trans <- transform_circles(Trans)
+plot(y ~ x, data = After_trans, col = (After_trans$col), asp = 1, pch = 20)
+
+svals <- svd(Trans)
+Start <- make_circles()
+plot(y ~ x, data = Start, col = Start$col, asp = 1, pch = 20)
+After_V <- transform_circles(t(svals$v), Start)
+plot(y ~ x, data = After_V, col = After_V$col, asp = 1, pch = 20)
+After_V_lambda <- transform_circles(diag(svals$d), After_V)
+plot(y ~ x, data <- After_V_lambda, col = After_V_lambda$col, asp = 1, pch = 20)
+After_V_lambda_U <- transform_circles(svals$u, After_V_lambda)
+plot(y ~ x, data = After_V, col = After_V_lambda_U$col, asp = 1, pch = 20)
+```
+
+
+## Idea of singular values.
+
+Find orthogonal vectors to describe the ellipsoidal cloud.  The singular value describes "how long" each ellipsoidal axis is.
+
+Correlation $R^2_{x_j | x_{-j}}$ gets increased for each *direction* that overlaps between $x_j$ and $x_{-j}$ --- it doesn't matter how big the singular value is in that direction.  Only by throwing out *directions* can we reduce $R^2_{x_j | x_{-j}}$
+
+Nice illustration:
+
+![](Singular-value-picture.png)
+
+[Source](https://en.wikipedia.org/wiki/Singular_value_decomposition#/media/File:Singular-Value-Decomposition.svg)
+
+# Dimension reduction
+
+Re-arrange the variables to squeeze the juice out of them.
+
+1. Matrix
+2. Approximate matrix in a least squares sense.  If that approximation includes the same column or more, we can discard the repeats.
+2. Outer product 
+3. Rank-1 matrix constructed by creating multiples of one column.
+4. Create another vector and another rank-1 matrix.  Add it up and we get closer to the target.
+
+Creating those singular vectors:
+
+* singular value decomposition
+* ${\mathbf D}$ gives information on how big they are
+* orthogonal to one another
+* cumulative sum of ${\mathbf D}$ components gives the amount of variance in the approximation.
+```{r}
+res <- svd(mona)
+approx <- 0
+for (i in 1:20) {
+  approx <- approx + outer(res$u[,i], res$v[,i]) * res$d[i]
+}
+image(approx, asp=1)
+```
+
+
+
+Picture in terms of gaussian cloud.  The covariance matrix tells all that you need.
+
+Not magic.  Show the "envelope" example from Mayo.
+
+Using `pcr()` to fit models, interpreting the output.
+
+```{r}
+pcr.fit <- pcr(Salary ~ ., data = ISLR::Hitters, scale=TRUE, validation="CV")
+summary(pcr.fit)
+validationplot(pcr.fit, val.type = "MSEP")
+```
+# Programming Activity
+
+Day 15 Programming Activity.  Generating data and fitting models.
+
+
+
